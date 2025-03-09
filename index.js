@@ -3,19 +3,19 @@ const axios = require('axios');
 
 let mainWindow;
 let loginWindow;
-const BASE_IO_URL = "https://seu-baseio-endpoint.com/get-session"; // URL do Base.io para pegar cookies
+const VERCEL_API_URL = "https://seu-vercel-api.vercel.app/api"; // URL da API no Vercel
 const PROXY_URL = "http://45.140.192.234:3129";
 
-async function obterSessaoBaseIO(email) {
+async function obterSessao(email) {
     try {
-        const response = await axios.post(BASE_IO_URL, { email });
+        const response = await axios.post(VERCEL_API_URL, { email });
         if (response.data.success) {
             return response.data.cookies;
         } else {
             return null;
         }
     } catch (error) {
-        console.error("❌ Erro ao obter sessão do Base.io:", error);
+        console.error("❌ Erro ao obter sessão do Vercel:", error);
         return null;
     }
 }
@@ -41,52 +41,3 @@ function criarJanelaLogin() {
                 function enviarEmail() {
                     const email = document.getElementById('email').value;
                     ipcRenderer.send('verificar-email', email);
-                }
-            </script>
-        </body>
-        </html>`);
-}
-
-ipcMain.on('verificar-email', async (event, email) => {
-    const cookies = await obterSessaoBaseIO(email);
-    if (!cookies) {
-        loginWindow.webContents.executeJavaScript("alert('Acesso negado! Seu e-mail não está autorizado ou já está logado em outro local.');");
-        return;
-    }
-    loginWindow.close();
-    iniciarNavegador(cookies);
-});
-
-function iniciarNavegador(cookies) {
-    mainWindow = new BrowserWindow({
-        width: 1200,
-        height: 800,
-        webPreferences: {
-            nodeIntegration: false,
-            contextIsolation: true,
-        }
-    });
-
-    session.defaultSession.setProxy({ proxyRules: PROXY_URL }).then(() => {
-        mainWindow.loadURL('https://stock.adobe.com');
-    });
-
-    // Aplica os cookies de sessão do Base.io
-    session.defaultSession.cookies.set({
-        url: 'https://stock.adobe.com',
-        name: 'session',
-        value: cookies
-    }).then(() => {
-        console.log("✅ Cookies de login aplicados com sucesso pelo Base.io!");
-    }).catch(error => {
-        console.error("❌ Erro ao definir cookies:", error);
-    });
-
-    app.on('window-all-closed', () => {
-        if (process.platform !== 'darwin') {
-            app.quit();
-        }
-    });
-}
-
-app.whenReady().then(criarJanelaLogin);
