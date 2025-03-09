@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
 
         // 🔹 Faz a requisição para a planilha
         const response = await axios.get(PLANILHA_URL);
-        const usuarios = response.data;
+        let usuarios = response.data;
 
         // 🔹 Log para verificar se os dados retornados são corretos
         console.log("🔎 Resposta bruta da planilha:", usuarios);
@@ -24,22 +24,24 @@ module.exports = async (req, res) => {
         // 🔹 Normaliza o e-mail recebido no POST
         const emailFormatado = email.trim().toLowerCase();
 
-        // 🔹 Verifica se os dados da planilha são um array ou objeto
+        // 🔹 Verifica se os dados da planilha são um array ou objeto válido
         if (!usuarios || typeof usuarios !== 'object') {
             console.error("❌ Erro: Estrutura de resposta da planilha inválida.");
             return res.status(500).json({ error: "Erro na estrutura da planilha." });
         }
 
-        // 🔹 Normaliza os e-mails recebidos da planilha
-        const usuariosFormatados = Object.keys(usuarios).reduce((acc, key) => {
-            acc[key.trim().toLowerCase()] = usuarios[key];
-            return acc;
-        }, {});
+        // 🔹 Converte resposta para um formato adequado (caso necessário)
+        if (Array.isArray(usuarios)) {
+            usuarios = usuarios.reduce((acc, email) => {
+                acc[email.trim().toLowerCase()] = "Em Dia";
+                return acc;
+            }, {});
+        }
 
-        console.log("📄 E-mails normalizados da planilha:", Object.keys(usuariosFormatados));
+        console.log("📄 E-mails normalizados da planilha:", Object.keys(usuarios));
 
         // 🔹 Verifica se o e-mail está "Em Dia"
-        if (usuariosFormatados[emailFormatado] === "Em Dia") {
+        if (usuarios[emailFormatado] && usuarios[emailFormatado] === "Em Dia") {
             return res.status(200).json({ success: true, message: "✅ Acesso liberado!" });
         } else {
             console.error(`❌ Acesso negado para: ${emailFormatado}`);
