@@ -1,3 +1,13 @@
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("emailInput").focus(); // Focar no campo de e-mail
+
+    document.getElementById("emailInput").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") { 
+            login(); // Pressionar Enter também faz login
+        }
+    });
+});
+
 async function login() {
     const email = document.getElementById("emailInput").value.trim().toLowerCase();
 
