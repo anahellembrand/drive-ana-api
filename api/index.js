@@ -2,12 +2,14 @@ const axios = require('axios');
 
 module.exports = async (req, res) => {
     if (req.method !== 'POST') {
+        console.log("🚫 Método não permitido:", req.method);
         return res.status(405).json({ error: "Método não permitido" });
     }
 
     const { email } = req.body;
 
     if (!email) {
+        console.log("⚠️ E-mail não enviado no body!");
         return res.status(400).json({ error: "E-mail é obrigatório" });
     }
 
@@ -17,15 +19,19 @@ module.exports = async (req, res) => {
 
         // 🔹 Busca os usuários na planilha
         const response = await axios.get(PLANILHA_URL);
-        console.log("🔍 Dados recebidos da planilha:", response.data); // Log para depuração
+        console.log("📌 Dados recebidos da planilha:", response.data);
 
         const usuarios = response.data;
 
+        console.log("🔍 E-mail buscado:", email);
+        console.log("🔍 Todos os e-mails na planilha:", Object.keys(usuarios));
+
         // 🔹 Verifica se o e-mail está na lista e "Em Dia"
         if (usuarios[email] && usuarios[email] === "Em Dia") {
+            console.log("✅ Acesso permitido para:", email);
             return res.status(200).json({ success: true, message: "✅ Acesso liberado!" });
         } else {
-            console.log("❌ E-mail não encontrado ou bloqueado:", email);
+            console.log("❌ Acesso negado para:", email);
             return res.status(403).json({ success: false, message: "⛔ Acesso negado! Usuário não encontrado ou bloqueado." });
         }
     } catch (error) {
