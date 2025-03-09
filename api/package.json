@@ -1,14 +1,11 @@
 {
-    "name": "drive-ana-api",
-    "version": "1.0.0",
-    "description": "API de login para Base.io e Vercel",
-    "main": "index.js",
-    "scripts": {
-      "start": "node index.js"
-    },
-    "dependencies": {
-      "electron": "^24.0.0",
-      "axios": "^1.4.0"
-    }
+  "name": "drive-ana-api",
+  "version": "1.0.0",
+  "description": "API para login e autenticação",
+  "scripts": {
+    "vercel-build": "echo 'Vercel Build OK'"
+  },
+  "dependencies": {
+    "axios": "^1.4.0"
   }
-  
+}
