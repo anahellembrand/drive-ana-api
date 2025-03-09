@@ -3,19 +3,19 @@ const axios = require('axios');
 
 let mainWindow;
 let loginWindow;
-const VERCEL_API_URL = "https://seu-vercel-api.vercel.app/api"; // URL da API hospedada no Vercel
+const BASE_IO_URL = "https://seu-baseio-endpoint.com/get-session"; // URL do Base.io para pegar cookies
 const PROXY_URL = "http://45.140.192.234:3129";
 
-async function obterSessaoElectron(email) {
+async function obterSessaoBaseIO(email) {
     try {
-        const response = await axios.post(VERCEL_API_URL, { email });
+        const response = await axios.post(BASE_IO_URL, { email });
         if (response.data.success) {
             return response.data.cookies;
         } else {
             return null;
         }
     } catch (error) {
-        console.error("❌ Erro ao obter sessão do Vercel:", error);
+        console.error("❌ Erro ao obter sessão do Base.io:", error);
         return null;
     }
 }
@@ -48,7 +48,7 @@ function criarJanelaLogin() {
 }
 
 ipcMain.on('verificar-email', async (event, email) => {
-    const cookies = await obterSessaoElectron(email);
+    const cookies = await obterSessaoBaseIO(email);
     if (!cookies) {
         loginWindow.webContents.executeJavaScript("alert('Acesso negado! Seu e-mail não está autorizado ou já está logado em outro local.');");
         return;
@@ -71,13 +71,13 @@ function iniciarNavegador(cookies) {
         mainWindow.loadURL('https://stock.adobe.com');
     });
 
-    // Aplica os cookies de sessão do Vercel
+    // Aplica os cookies de sessão do Base.io
     session.defaultSession.cookies.set({
         url: 'https://stock.adobe.com',
         name: 'session',
         value: cookies
     }).then(() => {
-        console.log("✅ Cookies de login aplicados com sucesso pelo Vercel!");
+        console.log("✅ Cookies de login aplicados com sucesso pelo Base.io!");
     }).catch(error => {
         console.error("❌ Erro ao definir cookies:", error);
     });
