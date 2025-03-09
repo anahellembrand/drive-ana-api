@@ -17,15 +17,19 @@ module.exports = async (req, res) => {
 
         // 🔹 Busca os usuários na planilha
         const response = await axios.get(PLANILHA_URL);
+        console.log("🔍 Dados recebidos da planilha:", response.data); // Log para depuração
+
         const usuarios = response.data;
 
-        // 🔹 Verifica se o e-mail está "Em Dia"
-        if (usuarios[email] === "Em Dia") {
+        // 🔹 Verifica se o e-mail está na lista e "Em Dia"
+        if (usuarios[email] && usuarios[email] === "Em Dia") {
             return res.status(200).json({ success: true, message: "✅ Acesso liberado!" });
         } else {
+            console.log("❌ E-mail não encontrado ou bloqueado:", email);
             return res.status(403).json({ success: false, message: "⛔ Acesso negado! Usuário não encontrado ou bloqueado." });
         }
     } catch (error) {
+        console.error("🔥 Erro ao conectar com a planilha:", error);
         return res.status(500).json({ error: "Erro ao conectar com a planilha.", details: error.message });
     }
 };
