@@ -3,7 +3,7 @@ const axios = require('axios');
 
 let mainWindow;
 let loginWindow;
-const VERCEL_API_URL = "https://seu-vercel-api.vercel.app/api"; // URL da API no Vercel
+const VERCEL_API_URL = "api-js-git-main-ana-hellembrands-projects.vercel.app"; // URL da API no Vercel
 const PROXY_URL = "http://45.140.192.234:3129";
 
 async function obterSessao(email) {
