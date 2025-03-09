@@ -3,14 +3,13 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.runtime.sendMessage({ checkProxy: true }, (response) => {
         if (!response || !response.proxyActive) {
             alert("⚠️ O proxy está desativado! Ative a extensão para acessar os sites.");
-            window.location.href = "https://sua-extensao.com/ativar"; // Pode redirecionar para um aviso
+            window.location.href = "https://sua-extensao.com/ativar"; // 🔹 Pode ser uma página de instrução
         } else {
             console.log("✅ Proxy ativo! Acesso permitido.");
         }
     });
-});
 
-document.addEventListener("DOMContentLoaded", () => {
+    // 🔹 Verifica se o usuário está autenticado
     let userEmail = localStorage.getItem("userEmail") || sessionStorage.getItem("userEmail");
 
     if (!userEmail || userEmail.trim() === "") {
@@ -22,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("✅ Usuário autenticado:", userEmail);
     document.getElementById("userEmail").innerText = userEmail;
 
+    // 🔹 Definição dos serviços disponíveis
     const services = [
         { name: "Adobe Stock", url: "https://stock.adobe.com" },
         { name: "Envato", url: "https://elements.envato.com" },
@@ -31,42 +31,56 @@ document.addEventListener("DOMContentLoaded", () => {
         { name: "Design Bundles", url: "https://designbundles.net" }
     ];
 
+    // 🔹 Cria os botões dinamicamente e ativa o proxy apenas ao clicar
     const buttonsContainer = document.getElementById("buttons");
     services.forEach(service => {
         const button = document.createElement("button");
         button.innerText = service.name;
         button.onclick = () => {
-            chrome.runtime.sendMessage({ openWithProxy: service.url }, (response) => {
+            chrome.runtime.sendMessage({ activateProxy: true }, (response) => {
                 if (!response || !response.success) {
-                    alert("⚠️ Erro ao abrir o site pelo proxy. Verifique sua conexão!");
+                    alert("⚠️ Erro ao ativar o proxy. Verifique sua conexão!");
+                    return;
                 }
+
+                console.log(`🌍 Acessando ${service.name} via Proxy.`);
+                window.open(service.url, "_blank");
+
+                // 🔹 Desativar o proxy após 3 minutos para economizar banda
+                setTimeout(() => {
+                    chrome.runtime.sendMessage({ deactivateProxy: true });
+                }, 180000); // 3 minutos
             });
         };
         buttonsContainer.appendChild(button);
-    });  
-});
+    });
 
-// 🔒 Bloqueia Inspecionar Elemento
-document.addEventListener("contextmenu", event => event.preventDefault());
-document.addEventListener("keydown", event => {
-    if (
-        event.key === "F12" || 
-        (event.ctrlKey && event.shiftKey && event.key === "I") || 
-        (event.ctrlKey && event.shiftKey && event.key === "J") || 
-        (event.ctrlKey && event.key === "U")
-    ) {
-        event.preventDefault();
-        console.warn("🔒 Tentativa de abrir DevTools bloqueada!");
-    }
-});
-document.addEventListener("DOMContentLoaded", () => {
-    const iframes = document.getElementsByTagName("iframe");
+    // 🔒 Bloqueia Inspecionar Elemento
+    document.addEventListener("contextmenu", event => event.preventDefault());
+    document.addEventListener("keydown", event => {
+        if (
+            event.key === "F12" || 
+            (event.ctrlKey && event.shiftKey && event.key === "I") || 
+            (event.ctrlKey && event.shiftKey && event.key === "J") || 
+            (event.ctrlKey && event.key === "U")
+        ) {
+            event.preventDefault();
+            console.warn("🔒 Tentativa de abrir DevTools bloqueada!");
+        }
+    });
 
-    for (let iframe of iframes) {
-        iframe.onload = function () {
-            // Remove qualquer botão de logout que apareça dentro de um iframe
-            const logoutButtons = iframe.contentWindow.document.querySelectorAll("a[href*='logout'], button.logout");
-            logoutButtons.forEach(button => button.remove());
-        };
-    }
+    // 🔐 Remove botões de logout dentro dos iframes para impedir saída das contas
+    const observer = new MutationObserver(() => {
+        const iframes = document.getElementsByTagName("iframe");
+        for (let iframe of iframes) {
+            try {
+                const logoutButtons = iframe.contentWindow.document.querySelectorAll("a[href*='logout'], button.logout");
+                logoutButtons.forEach(button => button.remove());
+            } catch (e) {
+                console.warn("⚠️ Não foi possível acessar um iframe para remover logout.");
+            }
+        }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
 });
