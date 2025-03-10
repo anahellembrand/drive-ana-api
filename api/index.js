@@ -44,7 +44,7 @@ module.exports = async (req, res) => {
         if (usuarios[emailFormatado] && usuarios[emailFormatado] === "Em Dia") {
             return res.status(200).json({ success: true, message: "✅ Acesso liberado!" });
         } else {
-            console.error(`❌ Acesso negado para: ${emailFormatado}`);
+            console.error(❌ Acesso negado para: ${emailFormatado});
             return res.status(403).json({ success: false, message: "⛔ Acesso negado! Usuário não encontrado ou bloqueado." });
         }
     } catch (error) {
